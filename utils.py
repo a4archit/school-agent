@@ -3,7 +3,7 @@ import ast
 import json 
 
 
-from typing import List, Optional
+from typing import List, Optional, Any
 from langchain_core.messages import BaseMessage, HumanMessage
 
 
@@ -113,6 +113,24 @@ def get_latest_human_message(messages: List[BaseMessage]) -> Optional[HumanMessa
 
 
 
+
+
+
+
+def parse_python_like_string(data_str: str) -> Any:
+    """
+    Safely parses a Python-like list/dict string into a real Python object.
+    
+    Example input:
+        "[{'question': '...', 'options': [...]}]"
+    
+    Returns:
+        A valid Python object (list or dict).
+    """
+    try:
+        return ast.literal_eval(data_str)
+    except Exception as e:
+        raise ValueError(f"Failed to parse input: {e}")
 
 
 
