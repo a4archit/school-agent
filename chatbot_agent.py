@@ -114,7 +114,7 @@ class SkoolAgentState(BaseModel):
     ] = None
 
     quiz: Annotated[ 
-        Optional[ str | dict ],
+        Optional[ str | List[dict] ],
         Field(..., title="Generated Quiz")
     ] = None
 
@@ -271,7 +271,8 @@ def quiz_info_validation(state: SkoolAgentState):
         # "selected_chapter_number": None
     }
 
-    decision = interrupt(data_msg)
+    if not isinstance(ch_num, int):
+        decision = interrupt(data_msg)
 
     try:
         if isinstance(ch_num, int) or isinstance(decision["selected_chapter_number"], int):
@@ -719,8 +720,9 @@ def working_page() -> None:
                 config = {'configurable': {'thread_id': st.session_state['thread_id']}}
                 final_state = st.session_state.chatbot_agent.invoke(initial_state, config=config)
                 
-                if final_state['quiz']:
-                    if isinstance(final_state['quiz'], dict):
+                if 'quiz' in final_state:
+                    if isinstance(final_state['quiz'], list):
+
                         quiz_dialog(final_state['quiz'])
                     else:
                         logging.error("Quiz generated but not popuped may be improper format either in LLM generation or quiz extraction")
@@ -729,9 +731,9 @@ def working_page() -> None:
                 if "__interrupt__" in final_state:
                     # it means interruption occur
                     chapters_names_list = final_state['__interrupt__'][0].value['chapters_index']
-                    chapters_names = []
+                    chapters_names = ["-- Select a chapter --"]
                     for index, name in enumerate(chapters_names_list):
-                        chapters_names.append(f"{index}) {name}")
+                        chapters_names.append(f"{index+1}) {name}")
 
                     selected_chapter = st.selectbox(
                         label = "Chapters list",
@@ -739,19 +741,23 @@ def working_page() -> None:
                         label_visibility="hidden",
                         placeholder="Select a chapter",
                     )
+                    if selected_chapter == "-- Select a chapter --":
+                        st.stop()
 
-                    selected_chapter_number = selected_chapter.split(")")
+                    selected_chapter_number = int(selected_chapter.split(")")[0])
 
                     resumed_final_state =  st.session_state.chatbot_agent.invoke(
-                        Command(resume={"selected_chapter_number": selected_chapter_number}),
+                        Command(resume={"selected_chapter_number": selected_chapter_number-1}),
                         config=config,
                     )
 
-                    if resumed_final_state['quiz']:
-                        if isinstance(resumed_final_state['quiz'], dict):
+                    if 'quiz' in resumed_final_state:
+                        if isinstance(resumed_final_state['quiz'], list):
                             quiz_dialog(resumed_final_state['quiz'])
                         else:
                             logging.error("[interrupted:resumed] Quiz generated but not popuped may be improper format either in LLM generation or quiz extraction")
+                    else:
+                        logging.error("[interrupted:resume] Quiz not generate")
 
 
 
@@ -762,10 +768,12 @@ def working_page() -> None:
                     # Save bot message
                     st.session_state.messages.append({"role": "assistant", "content": ai_msg})
 
-            # Display bot message
-            with st.chat_message("assistant"):
 
-                st.write_stream(stream_text(ai_msg), cursor="🤖")
+                if ai_msg:
+                    # Display bot message
+                    with st.chat_message("assistant"):
+
+                        st.write_stream(stream_text(ai_msg), cursor="🤖")
 
 
 
