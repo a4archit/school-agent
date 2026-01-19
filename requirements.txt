@@ -2,6 +2,7 @@ openai
 langchain
 langchain-community 
 langchain-openai
+langgraph-checkpoint-sqlite
 langgraph
 faiss-cpu
 streamlit

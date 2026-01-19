@@ -3,6 +3,10 @@ import ast
 import json 
 
 
+from typing import List, Optional
+from langchain_core.messages import BaseMessage, HumanMessage
+
+
 
 
 def save_python_dict_string_as_json(python_dict_str: str, file_path: str):
@@ -60,6 +64,52 @@ def load_chapters(file_path: str) -> dict:
     except Exception as e:
         raise RuntimeError(f"Unexpected error loading chapters: {e}")
     
+
+
+
+
+
+def to_openai_messages(lc_messages):
+    role_map = {
+        "human": "user",
+        "ai": "assistant",
+        "system": "system",
+        "tool": "tool"
+    }
+    out = []
+    for m in lc_messages:
+        # LangChain message types expose .type and .content
+        role = role_map.get(getattr(m, "type", None))
+        if not role:
+            raise ValueError(f"Unknown message type: {type(m)}")
+        out.append({"role": role, "content": m.content})
+    return out
+
+
+
+
+
+
+
+
+
+def get_latest_human_message(messages: List[BaseMessage]) -> Optional[HumanMessage]:
+    """
+    Returns the latest HumanMessage from a list of BaseMessage objects.
+    
+    Args:
+        messages (List[BaseMessage]): List of LangChain messages
+    
+    Returns:
+        Optional[HumanMessage]: The most recent HumanMessage, or None if not found
+    """
+    # Loop from the LAST message backwards
+    for msg in reversed(messages):
+        if isinstance(msg, HumanMessage):
+            return msg
+
+    return None
+
 
 
 
