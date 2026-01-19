@@ -2,6 +2,6 @@
 venv
 LOCAL
 __pycache__
-
+chapters_index.json
 *.ipynb
 *.pdf
