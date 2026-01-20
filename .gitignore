@@ -5,3 +5,5 @@ __pycache__
 chapters_index.json
 *.ipynb
 *.pdf
+demo.db*
+demo.db-*
