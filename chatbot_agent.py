@@ -648,11 +648,11 @@ def working_page() -> None:
                 with st.spinner("Setting up RAG...", show_time=True):
                     # generate chunks of pdf
                     st.session_state.rag = SchoolRAG(
-                        pdf_path=Configurations.rag_vector_store_path, 
-                        vector_store_name=Configurations.rag_vector_store_path,
-                        load_pre_stored=True
+                        pdf_path=Configurations.pdf_path, 
+                        vector_store_name=Configurations.vector_store_name,
+                        load_pre_stored=False
                     )
-                    st.session_state.rag.setup(load_pre_stored=True)
+                    st.session_state.rag.setup(load_pre_stored=False)
 
                     # logging.info("Loading vector store... ")
                     # st.session_state.vector_store = fm.load_store(
